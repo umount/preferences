@@ -129,6 +129,26 @@ class PreferencesAfterBeingDefinedTest < ModelPreferenceTest
   end
 end
 
+class PreferencesTypeCasted < ModelPreferenceTest
+  def setup
+    @definition = User.preference :rate, :float, :default => 1.0
+    @user = new_user
+  end
+  
+  def test_should_have_float_type
+    assert_equal :float, @definition.type
+  end
+  
+  def test_should_only_have_default_preferences
+    assert_equal e = {'rate' => 1.0}, @user.preferences
+  end
+  
+  def test_should_type_cast_changed_values
+    @user.write_preference(:rate, "1.1")
+    assert_equal e = {'rate' => 1.1}, @user.preferences
+  end
+end
+
 class PreferencesByDefaultTest < ModelPreferenceTest
   def setup
     @definition = User.preference :notifications
@@ -178,7 +198,7 @@ class PreferencesWithCustomTypeTest < ModelPreferenceTest
     @user = new_user
   end
   
-  def test_should_have_boolean_type
+  def test_should_have_integer_type
     assert_equal :integer, @definition.type
   end
   
@@ -236,6 +256,7 @@ end
 class PreferencesReaderTest < ModelPreferenceTest
   def setup
     User.preference :notifications, :default => true
+    User.preference :rate, :float, :default => 1.0
     @user = create_user
   end
   
@@ -261,6 +282,8 @@ class PreferencesReaderTest < ModelPreferenceTest
   def test_should_type_cast_based_on_preference_definition
     @user.write_preference(:notifications, 'false')
     assert_equal false, @user.preferred(:notifications)
+    @user.write_preference(:rate, "1.2")
+    assert_equal 1.2, @user.preferred(:rate)
   end
   
   def test_should_cache_stored_values

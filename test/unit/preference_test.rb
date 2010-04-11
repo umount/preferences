@@ -212,6 +212,29 @@ class PreferenceWithBooleanTypeTest < ActiveSupport::TestCase
   end
 end
 
+class PreferenceWithFloatTypeTest < ActiveSupport::TestCase
+  def setup
+    User.preference :rate, :float, :default => 10.0
+  end
+  
+  def test_should_type_cast_nil_values
+    preference = new_preference(:name => 'rate', :value => nil)
+    assert_nil preference.value
+  end
+  
+  def test_should_type_cast_numeric_values
+    preference = new_preference(:name => 'rate', :value => 1.0)
+    assert_equal 1.0, preference.value
+    
+    preference.value = "1.1"
+    assert_equal 1.1, preference.value
+  end
+
+  def teardown
+    User.preference_definitions.delete('rate')
+  end
+end
+ 
 class PreferenceWithSTIOwnerTest < ActiveSupport::TestCase
   def setup
     @manager = create_manager

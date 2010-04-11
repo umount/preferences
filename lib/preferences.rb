@@ -417,7 +417,7 @@ module Preferences
       end
       
       value = convert_number_column_value(value) if preference_definitions[name].number?
-      preferences_group(group)[name] = value
+      preferences_group(group)[name] = preference_definitions[name].type_cast(value)
       
       value
     end
