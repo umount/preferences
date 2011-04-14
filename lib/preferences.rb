@@ -44,6 +44,7 @@ require 'preferences/preference_definition'
 #   u.preferred_color = 'red'
 #   u.valid?                        # => true
 module Preferences
+  require 'preferences/engine' if defined?(Rails::Railtie)
   module MacroMethods
     # Defines a new preference for all records in the model.  By default,
     # preferences are assumed to have a boolean data type, so all values will
@@ -160,8 +161,8 @@ module Preferences
         after_save :update_preferences
         
         # Named scopes
-        named_scope :with_preferences, lambda {|preferences| build_preference_scope(preferences)}
-        named_scope :without_preferences, lambda {|preferences| build_preference_scope(preferences, true)}
+        scope :with_preferences, lambda {|preferences| build_preference_scope(preferences)}
+        scope :without_preferences, lambda {|preferences| build_preference_scope(preferences, true)}
         
         extend Preferences::ClassMethods
         include Preferences::InstanceMethods
