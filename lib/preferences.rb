@@ -317,6 +317,8 @@ module Preferences
           preferences[name] = definition.default_value(group_type) unless preferences.include?(name)
         end
       end
+
+      preferences.reject! { |name, value| !preference_definitions[name] }
       
       preferences.inject({}) do |typed_preferences, (name, value)|
         typed_preferences[name] = value.nil? ? value : preference_definitions[name].type_cast(value)
