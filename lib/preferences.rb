@@ -153,7 +153,7 @@ module Preferences
     #   user.save!  # => true
     def preference(name, *args)
       unless included_modules.include?(InstanceMethods)
-        class_inheritable_hash :preference_definitions
+        class_attribute :preference_definitions
         self.preference_definitions = {}
         
         has_many :stored_preferences, :as => :owner, :class_name => 'Preference', :dependent => :delete_all
@@ -607,7 +607,7 @@ module Preferences
             attributes.all? {|attribute, value| preference[attribute] == value} 
           end
         else
-          stored_preferences.find(:all, :conditions => attributes)
+          stored_preferences.where(attributes)
         end
       end
   end
