@@ -499,6 +499,20 @@ module Preferences
     end
     
     private
+
+      def convert_number_column_value(value)
+        case value
+        when FalseClass
+          0
+        when TrueClass
+          1
+        when String
+          value.presence
+        else
+          value
+        end
+      end
+
       # Asserts that the given name is a valid preference in this model.  If it
       # is not, then an ArgumentError exception is raised.
       def assert_valid_preference(name)
