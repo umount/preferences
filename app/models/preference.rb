@@ -14,6 +14,8 @@ class Preference < ActiveRecord::Base
   validates_presence_of :name, :owner_id, :owner_type
   validates_presence_of :group_type, :if => :group_id?
   
+  attr_accessible :name, :group_id, :group_type
+  
   class << self
     # Splits the given group into its corresponding id and type. For simple
     # primitives, the id will be nil.  For complex types, specifically
