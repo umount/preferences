@@ -4,21 +4,13 @@
 
 == Resources
 
-API
-
-* http://rdoc.info/github/pluginaweek/preferences/master/frames
-
-Bugs
-
-* http://pluginaweek.lighthouseapp.com/projects/13286-preferences
-
 Development
 
-* http://github.com/pluginaweek/preferences
+* http://github.com/flowapp/preferences
 
 Source
 
-* git://github.com/pluginaweek/preferences.git
+* git://github.com/flowapp/preferences.git
 
 == Description
 
@@ -144,7 +136,7 @@ through an example:
 
   user = User.find(:first)
   car = Car.find(:first)
-  
+
   user.preferred_color = 'red', car
   # user.write_preference(:color, 'red', car) # The generic way
 
@@ -161,13 +153,13 @@ In addition to grouping preferences for a particular record, you can also group
 preferences by name.  For example,
 
   user = User.find(:first)
-  
+
   user.preferred_color = 'red', :automobiles
   user.preferred_color = 'tan', :clothing
-  
+
   user.preferred_color(:automobiles)  # => "red"
   user.preferred_color(:clothing)     # => "tan"
-  
+
   user.preferences(:automobiles)      # => {"color"=>"red"}
 
 === Saving preferences
@@ -204,13 +196,8 @@ Assigning the same value leaves the preference unchanged:
 
 == Testing
 
-Before you can run any tests, the following gem must be installed:
-* plugin_test_helper[http://github.com/pluginaweek/plugin_test_helper]
-
-To run against a specific version of Rails:
-
-  rake test RAILS_FRAMEWORK_ROOT=/path/to/rails
+  rake test
 
 == Dependencies
 
-* Rails 2.3 or later
+* Rails 4.2 or later
