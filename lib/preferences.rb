@@ -1,4 +1,3 @@
-require 'preferences/engine'
 require 'preferences/preference_definition'
 
 # Adds support for defining preferences on ActiveRecord models.
@@ -45,6 +44,7 @@ require 'preferences/preference_definition'
 #   u.preferred_color = 'red'
 #   u.valid?                        # => true
 module Preferences
+  require 'preferences/engine' if defined?(Rails::Railtie)
   module MacroMethods
     # Defines a new preference for all records in the model.  By default,
     # preferences are assumed to have a boolean data type, so all values will
@@ -156,7 +156,7 @@ module Preferences
         class_attribute :preference_definitions
         self.preference_definitions = {}
 
-        has_many :stored_preferences, :as => :owner, :class_name => 'Preference', :dependent => :destroy
+        has_many :stored_preferences, :as => :owner, :class_name => 'Preference', :dependent => :delete_all
 
         after_save :update_preferences
 
@@ -303,19 +303,35 @@ module Preferences
     #   user.preferred_color = 'red', :cars
     #   user.preferences(:cars)
     #   => {"language=>"English", "color"=>"red"}
-    def preferences(group = nil)
+    def preferences(options = {})
+      group = options[:group]
       preferences = preferences_group(group)
+
+      only = Array.wrap(options[:only]).map(&:to_s)
+      except = Array.wrap(options[:except]).map(&:to_s)
 
       unless preferences_group_loaded?(group)
         group_id, group_type = Preference.split_group(group)
-        find_preferences(:group_id => group_id, :group_type => group_type).each do |preference|
+        scope = { group_id: group_id, group_type: group_type }
+        scope.merge!(name: only) if only.any?
+
+        find_preferences(scope).each do |preference|
           preferences[preference.name] = preference.value unless preferences.include?(preference.name)
         end
 
         # Add defaults
-        preference_definitions.each do |name, definition|
+        definitions = preference_definitions
+        definitions = definitions.slice(*only) if only.any?
+
+        definitions.each do |name, definition|
           preferences[name] = definition.default_value(group_type) unless preferences.include?(name)
         end
+      end
+
+      preferences.slice!(*only) if only.any?
+
+      preferences.reject! do |name, value|
+        !preference_definitions[name] || except.include?(name)
       end
 
       preferences.inject({}) do |typed_preferences, (name, value)|
@@ -418,21 +434,9 @@ module Preferences
       end
 
       value = convert_number_column_value(value) if preference_definitions[name].number?
-      preferences_group(group)[name] = preference_definitions[name].type_cast(value)
+      preferences_group(group)[name] = value
 
       value
-    end
-    
-    def convert_number_column_value(value)
-      if value == false
-        0
-      elsif value == true
-        1
-      elsif value.is_a?(String) && value.blank?
-        nil
-      else
-        value
-      end
     end
 
     # Whether any attributes have unsaved changes.
@@ -509,6 +513,20 @@ module Preferences
     end
 
     private
+
+      def convert_number_column_value(value)
+        case value
+        when FalseClass
+          0
+        when TrueClass
+          1
+        when String
+          value.presence
+        else
+          value
+        end
+      end
+
       # Asserts that the given name is a valid preference in this model.  If it
       # is not, then an ArgumentError exception is raised.
       def assert_valid_preference(name)
@@ -598,10 +616,7 @@ module Preferences
             preferences.keys.each do |name|
               # Find an existing preference or build a new one
               attributes = {:name => name, :group_id => group_id, :group_type => group_type}
-              unless (preference = find_preferences(attributes).first)
-                preference = stored_preferences.build
-                attributes.each_pair { |attribute, value| preference[attribute] = value }
-              end
+              preference = find_preferences(attributes).first || stored_preferences.build(attributes)
               preference.value = preferred(name, group)
               preference.save!
             end
@@ -617,7 +632,13 @@ module Preferences
       def find_preferences(attributes)
         if stored_preferences.loaded?
           stored_preferences.select do |preference|
-            attributes.all? {|attribute, value| preference[attribute] == value}
+            attributes.all? do |attribute, value|
+              if value.is_a?(Array)
+                value.include?(preference[attribute])
+              else
+                preference[attribute] == value
+              end
+            end
           end
         else
           stored_preferences.where(attributes)
