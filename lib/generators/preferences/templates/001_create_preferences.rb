@@ -9,7 +9,7 @@ class CreatePreferences < ActiveRecord::Migration
     end
     add_index :preferences, [:owner_id, :owner_type, :name, :group_id, :group_type], :unique => true, :name => 'index_preferences_on_owner_and_name_and_preference'
   end
-  
+
   def self.down
     drop_table :preferences
   end
