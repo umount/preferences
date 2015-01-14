@@ -5,7 +5,7 @@ class CreateEmployees < ActiveRecord::Migration
       t.string :type
     end
   end
-  
+
   def self.down
     drop_table :employees
   end

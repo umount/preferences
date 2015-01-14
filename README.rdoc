@@ -144,7 +144,7 @@ through an example:
 
   user = User.find(:first)
   car = Car.find(:first)
-  
+
   user.preferred_color = 'red', car
   # user.write_preference(:color, 'red', car) # The generic way
 
@@ -161,13 +161,13 @@ In addition to grouping preferences for a particular record, you can also group
 preferences by name.  For example,
 
   user = User.find(:first)
-  
+
   user.preferred_color = 'red', :automobiles
   user.preferred_color = 'tan', :clothing
-  
+
   user.preferred_color(:automobiles)  # => "red"
   user.preferred_color(:clothing)     # => "tan"
-  
+
   user.preferences(:automobiles)      # => {"color"=>"red"}
 
 === Saving preferences

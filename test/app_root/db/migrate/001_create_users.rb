@@ -4,7 +4,7 @@ class CreateUsers < ActiveRecord::Migration
       t.string :login, :null => false
     end
   end
-  
+
   def self.down
     drop_table :users
   end

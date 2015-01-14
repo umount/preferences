@@ -4,7 +4,7 @@ class CreateCars < ActiveRecord::Migration
       t.string :name, :null => false
     end
   end
-  
+
   def self.down
     drop_table :cars
   end
