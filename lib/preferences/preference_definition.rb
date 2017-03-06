@@ -3,13 +3,13 @@ module Preferences
   class PreferenceDefinition
     # The data type for the content stored in this preference type
     attr_reader :type
-    
+
     def initialize(name, *args) #:nodoc:
       options = args.extract_options!
       options.assert_valid_keys(:default, :group_defaults)
-      
+
       @type = args.first ? args.first.to_sym : :boolean
-      
+
       @klass = "ActiveRecord::Type::#{@type.to_s.classify}".constantize.new
       # Create a column that will be responsible for typecasting
       @column = ActiveRecord::ConnectionAdapters::Column.new(name.to_s, options[:default], @type == :any ? nil : @klass)
@@ -19,30 +19,30 @@ module Preferences
         defaults
       end
     end
-    
+
     # The name of the preference
     def name
       @column.name
     end
-    
+
     # The default value to use for the preference in case none have been
     # previously defined
     def default_value(group = nil)
       @group_defaults.include?(group) ? @group_defaults[group] : @column.default
     end
-    
+
     # Determines whether column backing this preference stores numberic values
     def number?
       @column.number?
     end
-    
+
     # Typecasts the value based on the type of preference that was defined.
     # This uses ActiveRecord's typecast functionality so the same rules for
     # typecasting a model's columns apply here.
     def type_cast(value)
-      @type == :any ? value : @column.type_cast_from_database(value)
+      @type == :any ? value : @klass.deserialize(value)
     end
-    
+
     # Typecasts the value to true/false depending on the type of preference
     def query(value)
       if !(value = type_cast(value))
