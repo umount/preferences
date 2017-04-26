@@ -33,7 +33,7 @@ module Preferences
 
     # Determines whether column backing this preference stores numberic values
     def number?
-      @column.number?
+      @column.type == :integer
     end
 
     # Typecasts the value based on the type of preference that was defined.
