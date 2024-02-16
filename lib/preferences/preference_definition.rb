@@ -11,8 +11,16 @@ module Preferences
       @type = args.first ? args.first.to_sym : :boolean
 
       @klass = "ActiveRecord::Type::#{@type.to_s.classify}".constantize.new
+
+      sql_type_metadata = ActiveRecord::ConnectionAdapters::SqlTypeMetadata.new(
+        sql_type: @klass.type.to_s,
+        type: @klass.type,
+        limit: @klass.limit,
+        precision: @klass.precision,
+        scale: @klass.scale)
+
       # Create a column that will be responsible for typecasting
-      @column = ActiveRecord::ConnectionAdapters::Column.new(name.to_s, options[:default], @type == :any ? nil : @klass)
+      @column = ActiveRecord::ConnectionAdapters::Column.new(name.to_s, options[:default], @type == :any ? nil : sql_type_metadata)
 
       @group_defaults = (options[:group_defaults] || {}).inject({}) do |defaults, (group, default)|
         defaults[group.is_a?(Symbol) ? group.to_s : group] = type_cast(default)
